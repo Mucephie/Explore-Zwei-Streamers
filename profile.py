@@ -17,8 +17,8 @@ from galpy.potential import MWPotential2014
 from galpy.potential import evaluateDensities
 from galpy.util import conversion
 
-
-
+import sympy
+from sympy import symbols
 
 '''
 # def profileGala(m, r, r_s):
@@ -49,7 +49,8 @@ from galpy.util import conversion
 '''
 
 
-
+rho_crit = 3 * cosmo.H(0)**2 / (8 * np.pi * cnst.G)
+# print(rho_crit.to(un.kg / un.m**3))
 
 class profile:
     def __init__(self, r_s):
@@ -107,3 +108,61 @@ class GalaProfileWrap():
                 dens.append(self.halpy.dens(r, 0).value)
             return dens
     
+class LumpyProfile():
+    def __init__(self, r_s, rho_s, gamma = 1):
+        self.r_s = r_s
+        self.rho_s = rho_s
+        self.gamma = gamma
+        # number density and subhalo mass
+        # subhalo distribution
+        # halo mass vs. total subhalo mass
+
+
+    def density(self, r):
+        return self.rho_s / ((r / self.r_s)**self.gamma * (1 + (r / self.r_s))**(3 - self.gamma))
+    
+
+class NFWProfile():
+    def __init__(self, r_s, rho_s):
+        self.r_s = r_s
+        self.rho_s = rho_s # properly define this, should I use rho_0?
+       
+        self.M = None
+
+        # self.c = 10 # 10 to 15 for mw via wikipedia, concentration parameter
+        # self.R_vir = None # R_vir = c * r_s 
+        # self.r_max = None
+
+        self.r_200 = None
+        self.m_200 = None
+
+    def density(self, r):
+        return self.rho_s / ((r / self.r_s)**1 * (1 + (r / self.r_s))**(3 - 1))
+
+    def mass(self, r = None):
+        if r == None:
+            if self.r_200 != None:
+                r = self.r_200
+            else:
+                self.set_200()
+                r = self.r_200
+        return 4 * np.pi * self.rho_s * self.r_s**3 * (np.log((self.r_s + r)/self.r_s)  + (self.r_s/(self.r_s + r) - 1))
+
+    def r_when(self, rho): # TODO
+        r= symbols('r', real = True)
+        expr = (self.rho_s / rho).value / ((r) * (1 + (r ))**(2)) # ((sympy.sqrt(r)*(1 + r**2)) / sympy.sqrt((self.rho_s / rho).value))
+        print('soving...')
+        rr_s = sympy.solve(sympy.Eq(expr, 1), r)
+        # print('ratio of r/r_s: ', rr_s) # rr_s = r / self.r_s
+        return rr_s * self.r_s
+        
+    def set_200(self):
+        self.r_200 = self.r_when(200 * rho_crit)
+        self.m_200 = 100 * self.r_200**3 * cosmo.H(0)**2 / cnst.G
+
+    def potential(self, r):
+        return ((4 * np.pi * cnst.G * self.rho_s * self.r_s**3) / r) * np.log(1 + (r / self.r_s))
+    
+    
+    ## r_200 is when density is 200*rho_crit
+    ## m_200 is 100 * r_200**3 * H**2 / cnst.G
