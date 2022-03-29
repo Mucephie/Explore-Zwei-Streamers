@@ -19,10 +19,10 @@ from galpy.util import conversion
 
 
 ## Params ##
-r_s   = 8.8  * un.kpc # 8.8 , 8.1 Pal5/Schonrich2010
+r_s   = 8.9  * un.kpc # 8.8 , 8.1 Pal5/Schonrich2010
 v_h   = 220  * un.km / un.s # 220 Schonrich2010
 m     = 6E11 * un.Msun
-rho_s = 0.11    * un.Msun / (un.pc)**3 # 0.11
+rho_s = 0.11 * un.Msun / (un.pc)**3 # 0.11
 r     = np.logspace(-3, 1.5, 256) * un.kpc
 
 ## functions ##
@@ -57,44 +57,45 @@ for i in range(len(r)):
 
 ## initialize June's profiles 2022 ##
 nfwp  = pf.NFWProfile(r_s = r_s, rho_s = rho_s)
-# nfwp  = pf.McMillanProfile(r_s = r_s, rho_s = rho_s, v_h = v_h)
-nfwp_v2  = pf.McMillanProfile(r_s = 8.1 * un.kpc, rho_s = rho_s, v_h = v_h)
-nfwp_v3  = pf.McMillanProfile(r_s = 15 * un.kpc, rho_s = 0.011 * un.Msun / (un.pc)**3 , v_h = v_h)
-
-# print(nfwp.density(15 * un.kpc))
-# print(nfwp_v2.density(15 * un.kpc))
-# print(nfwp_v3.density(15 * un.kpc))
-
-
-# print('r_when: ', nfwp.r_when(0.1 * un.Msun / (un.pc)**3))
+nfwp.mass(r, True)
+nfwp.set_200()
+print('mass: ', (nfwp.m_200 / 10**11).value[0], ' x 10^11 Msun, radius: ',  nfwp.r_200.value[0], ' kpc')
+nfwp.potential(r, True)
 
 
 
+## Graph density ##
+# fig, ax = plt.subplots()
+# ax.axvline(15, color='black', lw=0.5)
+# ax.axvline(25, color='black', lw=0.5)
+# # ax.axvline(0.946008635110769)
 
 
+# # profiles plot #
+# mkProfPlot(nfwp, r, 'NFW_8.8kpc', shade = True)
+# ax.semilogy(r, densmw, label = 'mw')
+
+# # anatomy of a plot #
+# plt.legend()
+# ax.set_title('DM Halo Mass Density')
+# ax.set_xlabel(r'radius ($kpc$)')
+# ax.set_ylabel(r'mass density ($M_{sol}/{\rm pc}^{3}$)')
+# ax.set_xlim((0, 10**1.5))
+# plt.grid()
+# plt.show()
 
 
+## Graph mass ##
+# NOTE profile seems shallow but m200 and r200 seem correct.
+# fig, ax = plt.subplots()
 
+# ax.semilogy(r, nfwp.mass_profile, label = 'NFW_8.8kpc')
+# ax.axvline(nfwp.r_200.value, color='black', lw=0.5)
+# ax.axhline(nfwp.m_200.value, color='black', lw=0.5)
+# plt.legend()
+# ax.set_title('DM Halo Mass')
+# ax.set_xlabel(r'radius ($kpc$)')
+# ax.set_ylabel(r'mass ($M_{sol}$)')
 
-## Graph it ##
-fig, ax = plt.subplots()
-ax.axvline(15, color='black', lw=0.5)
-ax.axvline(25, color='black', lw=0.5)
-# ax.axvline(0.946008635110769)
-
-
-# profiles plot #
-mkProfPlot(nfwp, r, 'NFW_8.8kpc', shade = True)
-# mkProfPlot(nfwp_v2, r, 'NFW_8.1kpc')
-# mkProfPlot(nfwp_v3, r, 'NFW_15kpc')
-ax.semilogy(r, densmw, label = 'mw')
-
-# anatomy of a plot #
-plt.legend()
-ax.set_title('DM Halo Mass Density')
-ax.set_xlabel(r'radius ($kpc$)')
-ax.set_ylabel(r'mass density ($M_{sol}/{\rm pc}^{3}$)')
-ax.set_ylim((0, 10E3))
-ax.set_xlim((0, 10**1.5))
-plt.grid()
-plt.show()
+# plt.grid()
+# plt.show()

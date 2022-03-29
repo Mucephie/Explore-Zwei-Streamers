@@ -122,12 +122,18 @@ class LumpyProfile():
         return self.rho_s / ((r / self.r_s)**self.gamma * (1 + (r / self.r_s))**(3 - self.gamma))
     
 
+
+
+
 class NFWProfile():
     def __init__(self, r_s, rho_s):
         self.r_s = r_s
         self.rho_s = rho_s # properly define this, should I use rho_0?
        
         self.M = None
+        self.mass_profile = None
+
+        self.potential_profile = None
 
         # self.c = 10 # 10 to 15 for mw via wikipedia, concentration parameter
         # self.R_vir = None # R_vir = c * r_s 
@@ -139,14 +145,17 @@ class NFWProfile():
     def density(self, r):
         return self.rho_s / ((r / self.r_s)**1 * (1 + (r / self.r_s))**(3 - 1))
 
-    def mass(self, r = None):
+    def mass(self, r = None, set = False):
         if r == None:
             if self.r_200 != None:
                 r = self.r_200
             else:
                 self.set_200()
                 r = self.r_200
-        return 4 * np.pi * self.rho_s * self.r_s**3 * (np.log((self.r_s + r)/self.r_s)  + (self.r_s/(self.r_s + r) - 1))
+        if set:
+            self.mass_profile = 4 * np.pi * self.rho_s * self.r_s**3 * (np.log((self.r_s + r) / self.r_s)  + (self.r_s / (self.r_s + r) - 1))
+        else:
+            return 4 * np.pi * self.rho_s * self.r_s**3 * (np.log((self.r_s + r)/self.r_s)  + (self.r_s/(self.r_s + r) - 1))
 
     def r_when(self, rho): # TODO
         r= symbols('r', real = True)
@@ -157,11 +166,15 @@ class NFWProfile():
         return rr_s * self.r_s
         
     def set_200(self):
-        self.r_200 = self.r_when(200 * rho_crit)
-        self.m_200 = 100 * self.r_200**3 * cosmo.H(0)**2 / cnst.G
+        rho_crit = (3 * cosmo.H(0)**2 / (8 * np.pi * cnst.G)).to(un.Msun / un.pc**3)
+        self.r_200 = self.r_when(200 * rho_crit).to(un.kpc)
+        self.m_200 = (100 * self.r_200**3 * cosmo.H(0)**2 / cnst.G).to(un.Msun)
 
-    def potential(self, r):
-        return ((4 * np.pi * cnst.G * self.rho_s * self.r_s**3) / r) * np.log(1 + (r / self.r_s))
+    def potential(self, r, set = False):
+        if set:
+            self.potential_profile = ((4 * np.pi * cnst.G * self.rho_s * self.r_s**3) / r) * np.log(1 + (r / self.r_s))
+        else:
+            return ((4 * np.pi * cnst.G * self.rho_s * self.r_s**3) / r) * np.log(1 + (r / self.r_s))
     
     
     ## r_200 is when density is 200*rho_crit
