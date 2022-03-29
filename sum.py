@@ -84,7 +84,7 @@ print('stream DM density: ', rho)
 print('local density: ', nfwp.density(8.8 * un.kpc))
 nfwp.set_200()
 print('mass: ', (nfwp.m_200 / 10**11).value[0], ' x 10^11 Msun, radius: ',  nfwp.r_200.value[0], ' kpc')
-t = np.linspace(0, 12 * 10E7, int(10E6)) # * un.Gyr cnst.G
+t = np.linspace(0, 12 * 10E2, int(10E6)) # * un.Gyr cnst.G
 
 GG = cnst.G.to(un.pc**3 / (un.Msun * un.yr**2))
 # print(GG)
@@ -95,7 +95,7 @@ def f(t, y):
 
     vel = vel * un.km / un.s
     width = width * un.pc
-    t = t * un.yr
+    t = t * un.Myr
     
     # unless t and width can beat out truncation error VVV this wont work
     x = (2*np.pi*GG*k*rho*f_DM)**2 * t * width # look into  units
@@ -105,24 +105,28 @@ def f(t, y):
     fx = np.array((x.value, z.value))
     return fx
 
-
+# print(2 * np.sqrt(1200 * un.pc * 1 * un.km / un.s))
+# print((2*np.pi*GG*k*rho*f_DM)**2 * 1 * un.Myr * 1200 * un.pc )
 # need units for width
-sol = solve_ivp(f, [0, 12 * 10E7], [0.001, 0.001], t_eval = t)
+sol = solve_ivp(f, [0, 12 * 10E2], [0.00001, 1200], t_eval = t)
 velocity = sol.y[0]
 width = sol.y[1]
+
 tt = sol.t
 
-fig, ax = plt.subplots(1, 2)
-ax1, ax2 = ax[0], ax[1]
+# fig, ax = plt.subplots(1, 2)
+# ax1, ax2 = ax[0], ax[1]
 
-ax1.semilogy((tt * un.yr).to(un.Gyr), velocity, label = 'velocity dispersion ')
-ax1.set_xlabel('time (Gyr)')
-ax1.set_ylabel('velocity')
+# ax1.semilogy((tt * un.Myr).to(un.Gyr), velocity, label = 'velocity dispersion ')
+# ax1.set_xlabel('time (Gyr)')
+# ax1.set_ylabel('velocity')
+# ax2.set_xlim((0, 12))
 
-ax2.semilogy((tt * un.yr).to(un.Gyr), width, label = 'width dispersion')
-ax2.set_xlabel('time (Gyr)')
-ax2.set_ylabel('width')
+# ax2.semilogy((tt * un.Myr).to(un.Gyr), width, label = 'width dispersion')
+# ax2.set_xlabel('time (Gyr)')
+# ax2.set_ylabel('width')
+# ax2.set_xlim((0, 12))
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
 
